@@ -1,0 +1,25 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "package.json",
+        "use": "@vercel/next"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/$1"
+      }
+    ],
+    "functions": {
+      "api/upload.js": {
+        "memory": 1024,
+        "maxDuration": 60
+      },
+      "api/transcribe.js": {
+        "memory": 1024,
+        "maxDuration": 300
+      }
+    }
+  }
