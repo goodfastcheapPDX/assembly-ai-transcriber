@@ -13,7 +13,7 @@
       },
       "api/transcribe.js": {
         "memory": 1024,
-        "maxDuration": 300
+        "maxDuration": 60
       }
     }
   }
