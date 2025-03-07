@@ -7,11 +7,11 @@
       }
     ],
     "functions": {
-      "api/upload.js": {
+      "pages/api/upload.js": {
         "memory": 1024,
         "maxDuration": 60
       },
-      "api/transcribe.js": {
+      "pages/api/transcribe.js": {
         "memory": 1024,
         "maxDuration": 60
       }
