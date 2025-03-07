@@ -46,11 +46,16 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
     setIsUploading(true)
     setError(null)
     
-    // Create form data for upload
-    const formData = new FormData()
-    formData.append('audioFile', file)
-    
     try {
+      // Step 1: Get an upload URL from AssemblyAI
+      const uploadUrlResponse = await fetch('/api/upload-url')
+      const { uploadUrl } = await uploadUrlResponse.json()
+      
+      if (!uploadUrl) {
+        throw new Error('Failed to get upload URL')
+      }
+      
+      // Step 2: Upload the file directly to AssemblyAI using the URL
       const xhr = new XMLHttpRequest()
       
       // Set up progress tracking
@@ -61,18 +66,31 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
         }
       })
       
-      // Set up completion handler
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const response = JSON.parse(xhr.responseText)
-          onTranscriptionStarted(response.id)
-        } else {
+      // Set up completion handler for upload
+      xhr.addEventListener('load', async () => {
+        if (xhr.status === 200 || xhr.status === 201) {
           try {
-            const errorData = JSON.parse(xhr.responseText)
-            setError(errorData.error || 'Upload failed')
-          } catch (e) {
-            setError(`Upload failed with status ${xhr.status}`)
+            // Step 3: Start the transcription with the uploaded file's URL
+            const transcriptionResponse = await fetch('/api/start-transcription', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ audioUrl: uploadUrl }),
+            })
+            
+            if (!transcriptionResponse.ok) {
+              throw new Error('Failed to start transcription')
+            }
+            
+            const transcriptionData = await transcriptionResponse.json()
+            onTranscriptionStarted(transcriptionData.id)
+          } catch (err) {
+            console.error('Error starting transcription:', err)
+            setError('Failed to start transcription. Please try again.')
           }
+        } else {
+          setError(`Upload failed with status ${xhr.status}`)
         }
         setIsUploading(false)
       })
@@ -83,11 +101,11 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
         setIsUploading(false)
       })
       
-      // Send the request
-      xhr.open('POST', '/api/upload', true)
-      xhr.send(formData)
+      // Send the direct upload to AssemblyAI
+      xhr.open('PUT', uploadUrl, true)
+      xhr.send(file)
     } catch (err) {
-      console.error('Error uploading file:', err)
+      console.error('Error in upload process:', err)
       setError('Failed to upload file. Please try again.')
       setIsUploading(false)
     }

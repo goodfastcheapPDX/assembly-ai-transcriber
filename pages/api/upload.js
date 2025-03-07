@@ -1,11 +1,11 @@
 import formidable from 'formidable'
 import { createTranscription } from '../../lib/assemblyai'
-import { saveFile, getFullUrl } from '../../lib/helpers'
 
 // Disable the default body parser to handle form data
 export const config = {
   api: {
     bodyParser: false,
+    responseLimit: false,
   },
 }
 
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Configure formidable for file uploads
+    // Configure formidable for file uploads with streaming to AssemblyAI
     const form = formidable({
       keepExtensions: true,
       maxFileSize: 500 * 1024 * 1024, // 500MB limit
@@ -41,23 +41,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Uploaded file is not an audio file' })
     }
 
-    // Read and save the file
-    const fileBuffer = await new Promise((resolve, reject) => {
-      const fileReader = new (require('fs')).readFileSync;
-      resolve(fileReader(audioFile.filepath));
-    });
-
-    // Save the file to the uploads directory
-    const relativeFilePath = await saveFile(
-      fileBuffer, 
-      audioFile.originalFilename
-    )
-    
-    // Get the full URL of the file
-    const fileUrl = getFullUrl(req, relativeFilePath)
-    
-    // Start transcription with AssemblyAI
-    const transcription = await createTranscription(fileUrl)
+    // Instead of saving the file, we'll use the direct upload to AssemblyAI feature
+    // by providing the file path (which is temporary but still accessible)
+    // This avoids the need to save the file permanently on the server
+    const transcription = await createTranscription(audioFile.filepath)
     
     // Return the transcription ID to the client
     return res.status(200).json({ 

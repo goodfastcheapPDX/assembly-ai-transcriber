@@ -6,14 +6,18 @@
         "dest": "/$1"
       }
     ],
-    "functions": {
-      "pages/api/upload.js": {
+   "functions": {
+        "pages/api/upload-url.js": {
         "memory": 1024,
-        "maxDuration": 60
-      },
-      "pages/api/transcribe.js": {
+        "maxDuration": 10
+         },
+        "pages/api/start-transcription.js": {
         "memory": 1024,
-        "maxDuration": 60
-      }
+        "maxDuration": 30
+        },
+        "pages/api/transcribe.js": {
+        "memory": 1024,
+        "maxDuration": 10
+        }
     }
   }
