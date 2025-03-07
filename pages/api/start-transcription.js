@@ -17,14 +17,11 @@ export default async function handler(req, res) {
       apiKey: process.env.ASSEMBLY_AI_API_KEY,
     })
 
-    // Request parameters with speaker_labels enabled
-    const data = {
-      audio: audioUrl,
-      speaker_labels: true,
-    }
-
-    // Start transcription
-    const transcript = await client.transcripts.transcribe(data)
+    // Start transcription with the uploaded audio URL
+    const transcript = await client.transcripts.create({
+      audio_url: audioUrl,
+      speaker_labels: true
+    })
 
     // Return the transcription ID to the client
     return res.status(200).json({ 

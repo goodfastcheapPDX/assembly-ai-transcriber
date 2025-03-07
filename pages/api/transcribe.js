@@ -1,4 +1,4 @@
-import { getTranscription } from '../../lib/assemblyai'
+import { AssemblyAI } from 'assemblyai'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -12,30 +12,35 @@ export default async function handler(req, res) {
   }
   
   try {
+    // Initialize AssemblyAI client
+    const client = new AssemblyAI({
+      apiKey: process.env.ASSEMBLY_AI_API_KEY,
+    })
+    
     // Get the transcription status from AssemblyAI
-    const transcription = await getTranscription(id)
+    const transcript = await client.transcripts.get(id)
     
     // Map the response based on status
-    if (transcription.status === 'completed') {
+    if (transcript.status === 'completed') {
       return res.status(200).json({
-        id: transcription.id,
+        id: transcript.id,
         status: 'completed',
-        text: transcription.text,
-        utterances: transcription.utterances || [],
-        audio_duration: transcription.audio_duration,
-        created: transcription.created_at,
+        text: transcript.text,
+        utterances: transcript.utterances || [],
+        audio_duration: transcript.audio_duration,
+        created: transcript.created_at,
       })
-    } else if (transcription.status === 'error') {
+    } else if (transcript.status === 'error') {
       return res.status(200).json({
-        id: transcription.id,
+        id: transcript.id,
         status: 'error',
-        error: transcription.error || 'An error occurred during transcription',
+        error: transcript.error || 'An error occurred during transcription',
       })
     } else {
       // Still processing
       return res.status(200).json({
-        id: transcription.id,
-        status: transcription.status,
+        id: transcript.id,
+        status: transcript.status,
         message: 'Transcription is still processing',
       })
     }

@@ -49,10 +49,15 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
     try {
       // Step 1: Get an upload URL from AssemblyAI
       const uploadUrlResponse = await fetch('/api/upload-url')
-      const { uploadUrl } = await uploadUrlResponse.json()
+      if (!uploadUrlResponse.ok) {
+        throw new Error(`Failed to get upload URL: ${uploadUrlResponse.status}`)
+      }
+      
+      const uploadUrlData = await uploadUrlResponse.json()
+      const uploadUrl = uploadUrlData.uploadUrl
       
       if (!uploadUrl) {
-        throw new Error('Failed to get upload URL')
+        throw new Error('Failed to get upload URL from server')
       }
       
       // Step 2: Upload the file directly to AssemblyAI using the URL
@@ -68,7 +73,7 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
       
       // Set up completion handler for upload
       xhr.addEventListener('load', async () => {
-        if (xhr.status === 200 || xhr.status === 201) {
+        if (xhr.status >= 200 && xhr.status < 300) {
           try {
             // Step 3: Start the transcription with the uploaded file's URL
             const transcriptionResponse = await fetch('/api/start-transcription', {
@@ -80,14 +85,14 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
             })
             
             if (!transcriptionResponse.ok) {
-              throw new Error('Failed to start transcription')
+              throw new Error(`Failed to start transcription: ${transcriptionResponse.status}`)
             }
             
             const transcriptionData = await transcriptionResponse.json()
             onTranscriptionStarted(transcriptionData.id)
           } catch (err) {
             console.error('Error starting transcription:', err)
-            setError('Failed to start transcription. Please try again.')
+            setError(`Failed to start transcription: ${err.message}`)
           }
         } else {
           setError(`Upload failed with status ${xhr.status}`)
@@ -106,7 +111,7 @@ export default function AudioUploader({ onTranscriptionStarted, disabled }) {
       xhr.send(file)
     } catch (err) {
       console.error('Error in upload process:', err)
-      setError('Failed to upload file. Please try again.')
+      setError(`Upload failed: ${err.message}`)
       setIsUploading(false)
     }
   }
