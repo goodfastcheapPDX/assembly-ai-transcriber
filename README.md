@@ -1,11 +1,11 @@
-# Audio Transcription App
+# Audio Transcription App with Google Drive Integration
 
-A Next.js application that allows you to upload MP3 files, send them to AssemblyAI for transcription and diarization, and display the results.
+A Next.js application that allows you to transcribe audio files from Google Drive URLs using AssemblyAI for transcription and diarization.
 
 ## Features
 
-- Large file upload support (up to 500MB by default)
-- Real-time upload progress tracking
+- Transcribe audio directly from Google Drive links
+- No file size limitations (transcribe files of any length)
 - Transcription with speaker diarization using AssemblyAI
 - View diarized transcription with speaker labels and timestamps
 - View and download the full transcript
@@ -14,6 +14,7 @@ A Next.js application that allows you to upload MP3 files, send them to Assembly
 
 - Node.js 14.x or later
 - An AssemblyAI API key (sign up at [AssemblyAI](https://www.assemblyai.com/))
+- Google Drive account for hosting audio files
 
 ## Installation
 
@@ -28,7 +29,6 @@ npm install
 
 ```
 ASSEMBLY_AI_API_KEY=your_api_key_here
-NEXT_PUBLIC_MAX_FILE_SIZE=500000000  # 500MB in bytes
 ```
 
 ## Development
@@ -41,6 +41,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## How It Works
+
+1. Upload your audio file to Google Drive
+2. Make the file publicly accessible (anyone with the link can view)
+3. Copy the Google Drive link
+4. Paste the link into the application
+5. The application sends the link to AssemblyAI for transcription
+6. View the diarized transcript when processing completes
+
 ## Deploying to Vercel
 
 1. Push your code to a Git repository (GitHub, GitLab, etc.)
@@ -50,13 +59,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Value: Your API key from AssemblyAI
 
 4. Deploy!
-
-### Environment Variables on Vercel
-
-Make sure to add the following environment variables in your Vercel project settings:
-
-- `ASSEMBLY_AI_API_KEY`: Your AssemblyAI API key
-- `NEXT_PUBLIC_MAX_FILE_SIZE`: Maximum file size in bytes (e.g., 500000000 for 500MB)
 
 ### Creating a Vercel Secret
 
@@ -72,19 +74,11 @@ vercel secrets add assembly_ai_api_key "your_api_key_here"
 
 ## Technical Details
 
-### File Upload Process
+### Google Drive Integration
 
-1. The front-end collects the audio file via a form
-2. The file is uploaded to the server with progress tracking via XMLHttpRequest
-3. The server saves the file to the `public/uploads` directory
-4. The file URL is sent to AssemblyAI for processing
-5. The client polls for transcription status until complete
-
-### Large File Handling
-
-- The application is configured to handle large files (up to 500MB by default)
-- Vercel's serverless functions have a 4.5MB payload limit, but this app circumvents that by saving the file to the filesystem
-- For very large files or production use, consider integrating with S3 or another storage service
+- The application accepts Google Drive URLs for audio files
+- AssemblyAI can directly access public Google Drive links
+- This approach bypasses file size limitations in browsers and serverless functions
 
 ### AssemblyAI Integration
 
@@ -92,42 +86,24 @@ vercel secrets add assembly_ai_api_key "your_api_key_here"
 - Speaker diarization is enabled to identify different speakers
 - The API provides timestamps and speaker labels for each utterance
 
-## Customization
-
-### Maximum File Size
-
-You can adjust the maximum file size in the `.env.local` file:
-
-```
-NEXT_PUBLIC_MAX_FILE_SIZE=1000000000  # 1GB in bytes
-```
-
-### Additional AssemblyAI Features
-
-The current implementation uses speaker diarization. You can enable additional features by modifying the `lib/assemblyai.js` file:
-
-```javascript
-const data = {
-  audio: fileUrl,
-  speaker_labels: true,
-  // Add other features:
-  // sentiment_analysis: true,
-  // entity_detection: true,
-  // summarization: true,
-}
-```
-
 ## Troubleshooting
 
-### Upload Issues
+### URL Issues
 
-- If you're having trouble with large uploads, check your server timeout settings
-- For local development, you may need to increase the body size limit in Next.js config
+- Ensure your Google Drive link is publicly accessible
+- Use the shareable link option in Google Drive (not the URL from your address bar)
+- The link should look like: `https://drive.google.com/file/d/[file-id]/view?usp=sharing`
 
 ### Transcription Issues
 
 - Check the AssemblyAI console for detailed logs
 - Ensure your audio file format is supported by AssemblyAI
+
+## Additional Features to Consider
+
+- Add support for other cloud storage providers (Dropbox, OneDrive, etc.)
+- Add authentication to protect your transcriptions
+- Add a history of past transcriptions
 
 ## License
 

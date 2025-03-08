@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import AudioUploader from '../components/AudioUploader'
+import DriveUrlUploader from '../components/DriveUrlUploader'
 import TranscriptionViewer from '../components/TranscriptionViewer'
 
 export default function Home() {
@@ -48,12 +48,23 @@ export default function Home() {
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Upload Audio for Transcription</h2>
+        <h2 className="text-2xl font-semibold mb-4">Transcribe Audio from Google Drive</h2>
         
-        <AudioUploader 
+        <DriveUrlUploader 
           onTranscriptionStarted={handleTranscriptionStarted}
           disabled={isTranscribing}
         />
+      </div>
+      
+      <div className="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
+        <h3 className="font-medium text-gray-700 mb-2">How to get a shareable Google Drive link:</h3>
+        <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+          <li>Open your Google Drive and find your audio file</li>
+          <li>Right-click on the file and select "Share"</li>
+          <li>Click "Get link" and set access to "Anyone with the link"</li>
+          <li>Copy the link and paste it above</li>
+        </ol>
+        <p className="mt-2 text-sm text-gray-500">Note: Make sure your audio file is publicly accessible or AssemblyAI won't be able to access it.</p>
       </div>
 
       {error && (
