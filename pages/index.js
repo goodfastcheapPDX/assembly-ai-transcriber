@@ -57,14 +57,15 @@ export default function Home() {
       </div>
       
       <div className="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
-        <h3 className="font-medium text-gray-700 mb-2">How to get a shareable Google Drive link:</h3>
+        <h3 className="font-medium text-gray-700 mb-2">How to share your Google Drive audio file:</h3>
         <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
-          <li>Open your Google Drive and find your audio file</li>
+          <li>Upload your audio file to Google Drive</li>
           <li>Right-click on the file and select "Share"</li>
           <li>Click "Get link" and set access to "Anyone with the link"</li>
           <li>Copy the link and paste it above</li>
+          <li>Our app will automatically convert it to the correct format</li>
         </ol>
-        <p className="mt-2 text-sm text-gray-500">Note: Make sure your audio file is publicly accessible or AssemblyAI won't be able to access it.</p>
+        <p className="mt-2 text-sm text-gray-500">Note: Your audio file must be publicly accessible or AssemblyAI won't be able to access it.</p>
       </div>
 
       {error && (

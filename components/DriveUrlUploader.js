@@ -4,6 +4,60 @@ export default function DriveUrlUploader({ onTranscriptionStarted, disabled }) {
   const [driveUrl, setDriveUrl] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState(null)
+  const [convertedUrl, setConvertedUrl] = useState(null)
+
+  // Function to convert Google Drive sharing URL to direct download URL
+  const convertGoogleDriveUrl = (url) => {
+    try {
+      // Extract the file ID from various Google Drive URL formats
+      let fileId = null;
+      
+      // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      if (url.includes('drive.google.com/file/d/')) {
+        const match = url.match(/\/file\/d\/([^/]+)/);
+        if (match && match[1]) {
+          fileId = match[1];
+        }
+      } 
+      // Format: https://drive.google.com/open?id=FILE_ID
+      else if (url.includes('drive.google.com/open?id=')) {
+        const match = url.match(/open\?id=([^&]+)/);
+        if (match && match[1]) {
+          fileId = match[1];
+        }
+      }
+      // Format: Already a uc?id format
+      else if (url.includes('drive.google.com/u/0/uc?id=')) {
+        const match = url.match(/uc\?id=([^&]+)/);
+        if (match && match[1]) {
+          fileId = match[1];
+        }
+      }
+      
+      if (!fileId) {
+        throw new Error('Could not extract file ID from the provided URL');
+      }
+      
+      // Construct the direct download URL
+      return `https://drive.google.com/u/0/uc?id=${fileId}&export=download`;
+    } catch (error) {
+      console.error('Error converting URL:', error);
+      return null;
+    }
+  };
+
+  const handleUrlChange = (e) => {
+    const url = e.target.value;
+    setDriveUrl(url);
+    
+    // If it looks like a Google Drive URL, attempt to convert it
+    if (url.includes('drive.google.com')) {
+      const converted = convertGoogleDriveUrl(url);
+      setConvertedUrl(converted);
+    } else {
+      setConvertedUrl(null);
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -23,13 +77,16 @@ export default function DriveUrlUploader({ onTranscriptionStarted, disabled }) {
     setError(null)
     
     try {
+      // Use the converted URL if available, otherwise use the original URL
+      const urlToUse = convertedUrl || driveUrl;
+      
       // Start transcription with the Drive URL
       const response = await fetch('/api/start-transcription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ audioUrl: driveUrl }),
+        body: JSON.stringify({ audioUrl: urlToUse }),
       })
       
       if (!response.ok) {
@@ -49,6 +106,7 @@ export default function DriveUrlUploader({ onTranscriptionStarted, disabled }) {
   
   const resetForm = () => {
     setDriveUrl('')
+    setConvertedUrl(null)
     setError(null)
   }
   
@@ -67,7 +125,7 @@ export default function DriveUrlUploader({ onTranscriptionStarted, disabled }) {
         <input
           type="url"
           value={driveUrl}
-          onChange={(e) => setDriveUrl(e.target.value)}
+          onChange={handleUrlChange}
           disabled={isProcessing || disabled}
           placeholder="https://drive.google.com/file/d/..."
           className="block w-full rounded-md border-gray-300 shadow-sm 
@@ -77,6 +135,14 @@ export default function DriveUrlUploader({ onTranscriptionStarted, disabled }) {
         <p className="mt-1 text-sm text-gray-500">
           Make sure your Drive file is publicly accessible (anyone with the link can view)
         </p>
+        
+        {convertedUrl && (
+          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-xs text-green-700">
+              ✓ Your link will be automatically converted to a direct download URL
+            </p>
+          </div>
+        )}
       </div>
       
       <div className="flex space-x-4">
